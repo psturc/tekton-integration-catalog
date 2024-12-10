@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1alpha1
+kind: StepAction
+metadata:
+  name: leaktk-scan
+spec:
+  description: |
+    This StepAction scans specified directory (workingDir) using [leaktk-scanner CLI](https://github.com/leaktk/scanner)
+    and deletes files containing sensitive information (credentials, certificates) that shouldn't be exposed to public.
+  image: quay.io/konflux-qe-incubator/konflux-qe-tools:latest
+  params:
+    - name: workdir-path
+      type: string
+      description: Path to the workdir directory that is about to be scanned
+  workingDir: $(params.workdir-path)
+  script: |
+    #!/bin/bash
+    set -o errexit
+    set -o nounset
+    set -o pipefail
+    set -x
+
+    log_filename="leaktk-scan-$(date +%s).log"
+    leaktk-scanner scan --kind Files --resource . 2>> $log_filename | leaktk-remove-files . &>> $log_filename
