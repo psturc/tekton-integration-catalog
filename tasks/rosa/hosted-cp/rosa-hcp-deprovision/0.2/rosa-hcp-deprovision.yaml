@@ -46,65 +46,40 @@ spec:
         #!/bin/sh
         $(params.ocp-login-command)
 
-        if [[ $(params.pipeline-aggregate-status) == "Succeeded" ]]; then
-          echo "[INFO]: Pipeline finished successfully. Skipping artifacts collection..."
-          exit 0
-        fi
-
         curl -sSL https://raw.githubusercontent.com/konflux-ci/konflux-qe-definitions/main/scripts/gather-extra.sh | bash
-    - name: inspect-upload-artifacts
-      workingDir: /workspace
-      onError: continue
-      image: quay.io/konflux-qe-incubator/konflux-qe-tools:latest
-      volumeMounts:
-        - name: konflux-test-infra-volume
-          mountPath: /usr/local/konflux-test-infra
-      script: |
-        #!/bin/sh
-
-        if [[ "$(params.pipeline-aggregate-status)" == "Succeeded" ]]; then
-            echo -e "[INFO]: Pipeline finished successfully. Skipping artifacts inspection..."
-            exit 0
-        fi
-
-        leaktk scan --kind Files --resource /workspace | leaktk-remove-files /workspace
-
-        OCI_STORAGE_USERNAME="$(jq -r '."quay-username"' /usr/local/konflux-test-infra/oci-storage)"
-        OCI_STORAGE_TOKEN="$(jq -r '."quay-token"' /usr/local/konflux-test-infra/oci-storage)"
-        OCI_STORAGE_CONTAINER="$(params.oci-container)"
-        TEMP_ANNOTATION_FILE="$(mktemp)"
-
-        # Fetch the manifest annotations for the container
-        MANIFESTS=$(oras manifest fetch "$OCI_STORAGE_CONTAINER" | jq .annotations) || {
-            echo -e "[ERROR]: Failed to fetch manifest from $OCI_STORAGE_CONTAINER"
-            exit 1
-        }
-
-        # Create and save the JSON object
-        jq -n --argjson manifest "$MANIFESTS" '{ "$manifest": $manifest }' > "${TEMP_ANNOTATION_FILE}"
-
-        oras pull "$OCI_STORAGE_CONTAINER"
-
-        attempt=1
-        while ! oras push "$OCI_STORAGE_CONTAINER" --username="${OCI_STORAGE_USERNAME}" --password="${OCI_STORAGE_TOKEN}" --annotation-file "${TEMP_ANNOTATION_FILE}" ./:application/vnd.acme.rocket.docs.layer.v1+tar; do
-            if [[ $attempt -ge 5 ]]; then
-                echo -e "[ERROR]: oras push failed after $attempt attempts."
-                rm -f "${TEMP_ANNOTATION_FILE}"
-                exit 1
-            fi
-            echo -e "[WARNING]: oras push failed (attempt $attempt). Retrying in 5 seconds..."
-            sleep 5
-            ((attempt++))
-        done
+      when:
+        - input: $(params.pipeline-aggregate-status)
+          operator: notin
+          values: ["Succeeded"]
+    - name: secure-push-oci
+      ref:
+        resolver: git
+        params:
+          - name: url
+            value: https://github.com/konflux-ci/tekton-integration-catalog.git
+          - name: revision
+            value: main
+          - name: pathInRepo
+            value: stepactions/secure-push-oci/0.1/secure-push-oci.yaml
+      params:
+        - name: workdir-path
+          value: /workspace
+        - name: oci-ref
+          value: $(params.oci-container)
+        - name: credentials-volume-name
+          value: konflux-test-infra-volume
+      when:
+        - input: $(params.pipeline-aggregate-status)
+          operator: notin
+          values: ["Succeeded"]
     - name: deprovision-rosa
       image: quay.io/konflux-qe-incubator/konflux-qe-tools:latest
+      onError: continue
       volumeMounts:
         - name: konflux-test-infra-volume
           mountPath: /usr/local/konflux-test-infra
       script: |
-        set -o errexit
-        set -o nounset
-        set -o pipefail
+        set -euo pipefail
 
         export CLUSTER_NAME REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY ROSA_TOKEN
 
@@ -137,13 +112,12 @@ spec:
         echo "INFO: [$(date +"%Y/%m/%d %H:%M:%S")] Done"
     - name: remove-tag-from-subnets
       image: quay.io/konflux-qe-incubator/konflux-qe-tools:latest
+      onError: continue
       volumeMounts:
         - name: konflux-test-infra-volume
           mountPath: /usr/local/konflux-test-infra
       script: |
-        set -o errexit
-        set -o nounset
-        set -o pipefail
+        set -euo pipefail
 
         CLUSTER_NAME=$(params.cluster-name)
         REGION=$(jq -r '.aws["region"]' /usr/local/konflux-test-infra/$(params.cloud-credential-key))
@@ -175,13 +149,12 @@ spec:
         fi
     - name: remove-load-balancers
       image: quay.io/konflux-qe-incubator/konflux-qe-tools:latest
+      onError: continue
       volumeMounts:
         - name: konflux-test-infra-volume
           mountPath: /usr/local/konflux-test-infra
       script: |
-        set -o errexit
-        set -o nounset
-        set -o pipefail
+        set -euo pipefail
 
         export CLUSTER_NAME REGION AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY
 
