@@ -1,6 +1,30 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
-  ]
+"customDatasources": {
+  "sealights": {
+    "defaultRegistryUrlTemplate": "https://documentation.tricentis.com/sealights/en/content/release_notes/golang/golang_agent_notes.htm",
+    "format": "html",
+    "transformTemplates": [
+      "{\"releases\": [{\"version\": $match(/?([0-9]+\\.[0-9]+\\.[0-9]+)/)}]}"
+    ]
+  }
+},
+"customManagers": [
+  {
+    "customType": "regex",
+    "fileMatch": ["konflux/sealights-agents/go/Dockerfile"],
+    "matchStrings": [
+      "https://agents\\.sealights\\.co/slgoagent/v(?<currentValue>[0-9]+\\.[0-9]+\\.[0-9]+)/slgoagent-linux-amd64\\.tar\\.gz"
+    ],
+    "datasourceTemplate": "custom",
+    "depNameTemplate": "sealights",
+    "versioningTemplate": "semver"
+  }
+],
+"packageRules": [
+  {
+    "matchPackageNames": ["sealights"],
+    "matchUpdateTypes": ["minor", "patch"],
+    "automerge": true
+  }
+]
 }
