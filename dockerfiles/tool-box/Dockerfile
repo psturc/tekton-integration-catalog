@@ -71,7 +71,7 @@ RUN git clone --depth 1 --branch "${LEAKTK_TAG}" https://github.com/leaktk/scann
 RUN curl -LO https://raw.githubusercontent.com/leaktk/hack/b41569b3bbed867eabd15649f6650ae506c8cfc5/leaktk-remove-files && chmod +x leaktk-remove-files && mv leaktk-remove-files /usr/local/bin/
 
 # Runnable
-FROM registry.access.redhat.com/ubi9/ubi:9.3-1610@sha256:66233eebd72bb5baa25190d4f55e1dc3fff3a9b77186c1f91a0abdb274452072
+FROM registry.access.redhat.com/ubi9/ubi:9.5-1744101466@sha256:ea57285741f007e83f2ee20423c20b0cbcce0b59cc3da027c671692cc7efe4dd
 
 ENV HOME=/home/tool-box
 
