@@ -1,5 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "datasources": {
+    "sealights-go-agent": {
+      "type": "https",
+      "url": "https://agents.sealights.co/slgoagent/versions/slgoagent_versions.json",
+      "responseType": "json",
+      "extractVersion": "slgoagent.version",
+      "versioning": "semver"
+    }
+  },
   "customManagers": [
     {
       "customType": "regex",
@@ -19,6 +28,16 @@
       ],
       "datasourceTemplate": "pypi",
       "depNameTemplate": "sealights-python-agent",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["konflux/sealights-agents/go/Dockerfile"],
+      "matchStrings": [
+        "ENV AGENT_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "datasourceTemplate": "sealights-go-agent",
+      "depNameTemplate": "sealights-go-agent",
       "versioningTemplate": "semver"
     }
   ],
