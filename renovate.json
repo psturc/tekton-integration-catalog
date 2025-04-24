@@ -1,12 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "datasources": {
-    "sealights-go-agent": {
-      "type": "https",
-      "url": "https://agents.sealights.co/slgoagent/versions/slgoagent_versions.json",
-      "responseType": "json",
-      "extractVersion": "slgoagent.version",
-      "versioning": "semver"
+  "customDatasources": {
+    "slgoagent": {
+      "defaultRegistryUrlTemplate": "https://agents.sealights.co/slgoagent/versions/slgoagent_versions.json",
+      "transformTemplates": [
+        "{\"releases\": slgoagent}"
+      ]
     }
   },
   "customManagers": [
@@ -39,6 +38,16 @@
       "datasourceTemplate": "sealights-go-agent",
       "depNameTemplate": "sealights-go-agent",
       "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "fileMatch": ["konflux/sealights-agents/go/Dockerfile"],
+      "matchStrings": [
+        "ENV AGENT_VERSION=(?<currentValue>\\d+\\.\\d+\\.\\d+)"
+      ],
+      "depNameTemplate": "slgoagent",
+      "versioningTemplate": "semver",
+      "datasourceTemplate": "custom.slgoagent"
     }
   ],
   "extends": [
