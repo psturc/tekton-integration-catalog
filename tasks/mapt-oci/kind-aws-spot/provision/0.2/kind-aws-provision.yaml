@@ -181,7 +181,8 @@ spec:
 
     - name: provisioner
       onError: continue
-      image: quay.io/redhat-developer/mapt:v0.9.5
+      image: ghcr.io/redhat-developer/mapt:pr-566
+      imagePullPolicy: Always
       volumeMounts:
         - name: aws-credentials
           mountPath: /opt/aws-credentials
