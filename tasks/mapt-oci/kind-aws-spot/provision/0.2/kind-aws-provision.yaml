@@ -213,10 +213,8 @@ spec:
         if [[ $(params.timeout) != "" ]]; then cmd+="--timeout $(params.timeout) "; fi
         cmd+="--tags $(params.tags) "
 
-        output=$(eval "${cmd}" 2>&1)
-        exit_code=$?
-        echo "${output}" | tee $LOG_FILENAME
-        exit $exit_code
+        eval "${cmd}" 2>&1 | tee "$LOG_FILENAME"
+        exit_code "${PIPESTATUS[0]}"
 
       computeResources:
         requests:
