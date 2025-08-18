@@ -181,7 +181,7 @@ spec:
 
     - name: provisioner
       onError: continue
-      image: ghcr.io/redhat-developer/mapt@sha256:da76426aeb1bc9b3c0118ed9b88cc5b54136434d99b0b7009e809ea31c0b59ce
+      image: ghcr.io/redhat-developer/mapt@sha256:21c46ceceec0aa177d2a9e783f65ed509baa7b5f3c5e4afcd5138fb841b0d132
       volumeMounts:
         - name: aws-credentials
           mountPath: /opt/aws-credentials
@@ -214,7 +214,9 @@ spec:
         cmd+="--tags $(params.tags) "
 
         eval "${cmd}" 2>&1 | tee "$LOG_FILENAME"
-        exit "${PIPESTATUS[0]}"
+        exit_code="${PIPESTATUS[0]}"
+        echo "[INFO] cluster provisioning exited with $exit_code"
+        exit $exit_code
 
       computeResources:
         requests:
