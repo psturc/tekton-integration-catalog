@@ -181,7 +181,7 @@ spec:
 
     - name: provisioner
       onError: continue
-      image: ghcr.io/redhat-developer/mapt@sha256:21c46ceceec0aa177d2a9e783f65ed509baa7b5f3c5e4afcd5138fb841b0d132
+      image: ghcr.io/redhat-developer/mapt:pr-577
       volumeMounts:
         - name: aws-credentials
           mountPath: /opt/aws-credentials
