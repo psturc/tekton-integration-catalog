@@ -181,7 +181,7 @@ spec:
 
     - name: provisioner
       onError: continue
-      image: quay.io/redhat-developer/mapt@sha256:cbe62e437d9602e43e36b194fbf6400b1584757f872d2e7c37cb117ee7e0e019
+      image: quay.io/redhat-developer/mapt:v1.0.0-dev
       imagePullPolicy: Always
       volumeMounts:
         - name: aws-credentials
