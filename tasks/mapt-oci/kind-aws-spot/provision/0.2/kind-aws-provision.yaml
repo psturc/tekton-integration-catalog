@@ -186,6 +186,7 @@ spec:
 
     - name: provisioner
       onError: continue
+      imagePullPolicy: Always
       image: ghcr.io/redhat-developer/mapt:pr-513
       volumeMounts:
         - name: aws-credentials
